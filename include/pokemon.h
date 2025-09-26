@@ -121,6 +121,7 @@ enum MonData {
     MON_DATA_GIGANTAMAX_FACTOR,
     MON_DATA_TERA_TYPE,
     MON_DATA_EVOLUTION_TRACKER,
+	MON_DATA_MIXMEGA, // Doesn't make sense to put this with permanent data but this is how I programmed it...  sorry!
 };
 
 struct PokemonSubstruct0
@@ -290,6 +291,7 @@ struct Pokemon
     u16 speed;
     u16 spAttack;
     u16 spDefense;
+	bool8 mixMega; // Putting this here seems like a bad idea.
 };
 
 struct MonSpritesGfxManager

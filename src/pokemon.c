@@ -66,6 +66,7 @@
 #include "constants/union_room.h"
 #include "constants/weather.h"
 #include "wild_encounter.h"
+#include "mix_mega.h"
 
 #define FRIENDSHIP_EVO_THRESHOLD ((P_FRIENDSHIP_EVO_THRESHOLD >= GEN_8) ? 160 : 220)
 
@@ -1701,6 +1702,29 @@ static u16 CalculateBoxMonChecksumReencrypt(struct BoxPokemon *boxMon)
     SetMonData(mon, field, &n);                                 \
 }
 
+#define MIN_STAT_CAP 1
+#define MAX_STAT_CAP 255
+
+#define CALC_STAT_MIXMEGA(base, iv, ev, statIndex, field, stone)\
+{                                                               \
+	s8 stoneStat = mixMegaStones[stone].base;					\
+    u8 baseStat = gSpeciesInfo[species].base;					\
+    s32 n; 														\
+																\
+	if (baseStat < -stoneStat)									\
+		baseStat = MIN_STAT_CAP;								\
+	else if (baseStat + stoneStat > 255)						\
+		baseStat = MAX_STAT_CAP;								\
+	else														\
+		baseStat = baseStat + stoneStat;						\
+																\
+	n = (((2 * baseStat + iv + ev / 4) * level) / 100) + 5;		\
+	n = ModifyStatByNature(nature, n, statIndex);				\
+	if (B_FRIENDSHIP_BOOST == TRUE)                             \
+        n = n + ((n * 10 * friendship) / (MAX_FRIENDSHIP * 100));\
+    SetMonData(mon, field, &n);                                 \
+}
+
 void CalculateMonStats(struct Pokemon *mon)
 {
     s32 oldMaxHP = GetMonData(mon, MON_DATA_MAX_HP, NULL);
@@ -1721,6 +1745,7 @@ void CalculateMonStats(struct Pokemon *mon)
     u8 friendship = GetMonData(mon, MON_DATA_FRIENDSHIP, NULL);
     s32 level = GetLevelFromMonExp(mon);
     s32 newMaxHP;
+	u8 stone;
 
     u8 nature = GetMonData(mon, MON_DATA_HIDDEN_NATURE, NULL);
 
@@ -1742,11 +1767,31 @@ void CalculateMonStats(struct Pokemon *mon)
 
     SetMonData(mon, MON_DATA_MAX_HP, &newMaxHP);
 
-    CALC_STAT(baseAttack, attackIV, attackEV, STAT_ATK, MON_DATA_ATK)
-    CALC_STAT(baseDefense, defenseIV, defenseEV, STAT_DEF, MON_DATA_DEF)
-    CALC_STAT(baseSpeed, speedIV, speedEV, STAT_SPEED, MON_DATA_SPEED)
-    CALC_STAT(baseSpAttack, spAttackIV, spAttackEV, STAT_SPATK, MON_DATA_SPATK)
-    CALC_STAT(baseSpDefense, spDefenseIV, spDefenseEV, STAT_SPDEF, MON_DATA_SPDEF)
+	// How Mix & Mega calculates stats.
+	// Whenever a mon's stats are recalculated (we force them to recalculate when mega evolution happens),
+	// we check if the mon is mix-mega'd, and use a different stat calculation formula.
+	// It's assumed here that the mega evolution is either 1) based on the held item, or 2) Dragon Ascent.
+    if (GetMonData(mon, MON_DATA_MIXMEGA))
+	{
+		if (GetItemHoldEffect(GetMonData(mon, MON_DATA_HELD_ITEM)) == HOLD_EFFECT_MEGA_STONE
+            || GetItemHoldEffect(GetMonData(mon, MON_DATA_HELD_ITEM)) == HOLD_EFFECT_PRIMAL_ORB)
+			stone = ItemIdToMegaStoneId(GetMonData(mon, MON_DATA_HELD_ITEM));
+		else
+			stone = STONE_DRAGON_ASCENT;
+		CALC_STAT_MIXMEGA(baseAttack, attackIV, attackEV, STAT_ATK, MON_DATA_ATK, stone)
+		CALC_STAT_MIXMEGA(baseDefense, defenseIV, defenseEV, STAT_DEF, MON_DATA_DEF, stone)
+		CALC_STAT_MIXMEGA(baseSpeed, speedIV, speedEV, STAT_SPEED, MON_DATA_SPEED, stone)
+		CALC_STAT_MIXMEGA(baseSpAttack, spAttackIV, spAttackEV, STAT_SPATK, MON_DATA_SPATK, stone)
+		CALC_STAT_MIXMEGA(baseSpDefense, spDefenseIV, spDefenseEV, STAT_SPDEF, MON_DATA_SPDEF, stone)
+	}
+	else
+	{
+		CALC_STAT(baseAttack, attackIV, attackEV, STAT_ATK, MON_DATA_ATK)
+		CALC_STAT(baseDefense, defenseIV, defenseEV, STAT_DEF, MON_DATA_DEF)
+		CALC_STAT(baseSpeed, speedIV, speedEV, STAT_SPEED, MON_DATA_SPEED)
+		CALC_STAT(baseSpAttack, spAttackIV, spAttackEV, STAT_SPATK, MON_DATA_SPATK)
+		CALC_STAT(baseSpDefense, spDefenseIV, spDefenseEV, STAT_SPDEF, MON_DATA_SPDEF)
+	}
 
     // Since a pokemon's maxHP data could either not have
     // been initialized at this point or this pokemon is
@@ -2293,6 +2338,9 @@ u32 GetMonData3(struct Pokemon *mon, s32 field, u8 *data)
     case MON_DATA_MAIL:
         ret = mon->mail;
         break;
+	case MON_DATA_MIXMEGA:
+		ret = mon->mixMega;
+		break;
     default:
         ret = GetBoxMonData(&mon->box, field, data);
         break;
@@ -2894,6 +2942,11 @@ void SetMonData(struct Pokemon *mon, s32 field, const void *dataArg)
         SetBoxMonData(&mon->box, field, data);
         break;
     }
+}
+
+void SetMonMixMega(struct Pokemon *mon, bool8 arg)
+{
+	mon->mixMega = arg;
 }
 
 void SetBoxMonData(struct BoxPokemon *boxMon, s32 field, const void *dataArg)

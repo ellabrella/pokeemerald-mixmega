@@ -10957,6 +10957,44 @@ void RecalcBattlerStats(u32 battler, struct Pokemon *mon, bool32 isDynamaxing)
     CopyMonAbilityAndTypesToBattleMon(battler, mon);
 }
 
+static void RecalcBattlerStatsMixMega(u32 battler, struct Pokemon *mon)
+{
+	u8 megaStone;
+	u8 mixMegaType;
+	
+	if (gBattleStruct->mega.isWishMegaEvo == TRUE)
+		megaStone = STONE_DRAGON_ASCENT;
+	else
+		megaStone = ItemIdToMegaStoneId(gBattleMons[battler].item);
+	
+	mixMegaType = mixMegaStones[megaStone].type;
+	
+    CalculateMonStats(mon);
+	
+    gBattleMons[battler].level = GetMonData(mon, MON_DATA_LEVEL);
+    gBattleMons[battler].hp = GetMonData(mon, MON_DATA_HP);
+    gBattleMons[battler].maxHP = GetMonData(mon, MON_DATA_MAX_HP);
+    gBattleMons[battler].attack = GetMonData(mon, MON_DATA_ATK);
+    gBattleMons[battler].defense = GetMonData(mon, MON_DATA_DEF);
+    gBattleMons[battler].speed = GetMonData(mon, MON_DATA_SPEED);
+    gBattleMons[battler].spAttack = GetMonData(mon, MON_DATA_SPATK);
+    gBattleMons[battler].spDefense = GetMonData(mon, MON_DATA_SPDEF);
+	
+    gBattleMons[battler].ability = mixMegaStones[megaStone].ability;
+	
+    gBattleMons[battler].type1 = gBaseStats[gBattleMons[battler].species].type1;
+	
+	if (mixMegaType == TYPE_NONE) {
+		gBattleMons[battler].type2 = gBaseStats[gBattleMons[battler].species].type2;
+	}
+	else if (mixMegaType == TYPE_NONE - 1) {
+		gBattleMons[battler].type2 = gBaseStats[gBattleMons[battler].species].type1;
+	}
+	else {
+		gBattleMons[battler].type2 = mixMegaType;
+	}
+}
+
 void RemoveConfusionStatus(u32 battler)
 {
     gBattleMons[battler].volatiles.confusionTurns = 0;
