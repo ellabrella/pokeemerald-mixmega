@@ -76,6 +76,5 @@ struct MixMegaStats
 extern const struct MixMegaStats mixMegaStones[];
 
 u8 ItemIdToMegaStoneId(u16 item);
-u8 MoveIdToMegaStoneId(u16 move);
 
 #endif // GUARD_MIX_MEGA_H

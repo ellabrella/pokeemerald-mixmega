@@ -7762,10 +7762,15 @@ static bool32 DoSwitchInEffectsForBattler(u32 battler)
 {
     u32 i = 0;
     u32 side = GetBattlerSide(battler);
+	struct Pokemon *mon;
+	
+	if (side == B_SIDE_PLAYER)
+            mon = &gPlayerParty[gBattlerPartyIndexes[battler]];
+        else
+            mon = &gEnemyParty[gBattlerPartyIndexes[battler]];
 	
 	// Reapply mix mega stats on switch in
-	if (gBattleStruct->mega.evolvedPartyIds[side] & gBitTable[gBattlerPartyIndexes[battler]]
-        || gBattleStruct->mega.primalRevertedPartyIds[side] & gBitTable[gBattlerPartyIndexes[battler]])
+	if (GetActiveGimmick(battler) == GIMMICK_MEGA)
 		RecalcBattlerStatsMixMega(battler, mon);
 	
     // Neutralizing Gas announces itself before hazards
@@ -9442,7 +9447,13 @@ static void HandleScriptMegaPrimalBurst(u32 caseId, u32 battler, u32 type)
         if (type == HANDLE_TYPE_MEGA_EVOLUTION)
         {
             if (!TryBattleFormChange(battler, FORM_CHANGE_BATTLE_MEGA_EVOLUTION_ITEM))
-                TryBattleFormChange(battler, FORM_CHANGE_BATTLE_MEGA_EVOLUTION_MOVE);
+			{
+				if (!TryBattleFormChange(battler, FORM_CHANGE_BATTLE_MEGA_EVOLUTION_MOVE))
+				{
+					SetMonMixMega(mon, TRUE);
+					RecalcBattlerStatsMixMega(battler, mon);
+				}
+			}
         }
         else if (type == HANDLE_TYPE_PRIMAL_REVERSION)
             TryBattleFormChange(battler, FORM_CHANGE_BATTLE_PRIMAL_REVERSION);

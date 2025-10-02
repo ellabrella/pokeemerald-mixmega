@@ -51,6 +51,7 @@
 #include "constants/trainers.h"
 #include "constants/weather.h"
 #include "constants/pokemon.h"
+#include "mix_mega.h"
 
 /*
 NOTE: The data and functions in this file up until (but not including) sSoundMovesTable
@@ -9971,8 +9972,9 @@ bool32 CanMegaEvolve(u32 battler)
         return FALSE;
 
     // Check if Trainer has already Mega Evolved.
-    if (HasTrainerUsedGimmick(battler, GIMMICK_MEGA))
-        return FALSE;
+	// Disabled in Mix and Mega.
+    //if (HasTrainerUsedGimmick(battler, GIMMICK_MEGA))
+        //return FALSE;
 
     // Check if battler has another gimmick active.
     if (GetActiveGimmick(battler) != GIMMICK_NONE)
@@ -9993,6 +9995,10 @@ bool32 CanMegaEvolve(u32 battler)
     // Check if there is an entry in the form change table for Wish Mega Evolution.
     if (GetBattleFormChangeTargetSpecies(battler, FORM_CHANGE_BATTLE_MEGA_EVOLUTION_MOVE) != gBattleMons[battler].species)
         return TRUE;
+	
+	// Mix and Mega: check if battler is holding any Mega Stone.
+	if (holdEffect == HOLD_EFFECT_MEGA_STONE)
+		return TRUE;
 
     // No checks passed, the mon CAN'T mega evolve.
     return FALSE;
@@ -10957,15 +10963,15 @@ void RecalcBattlerStats(u32 battler, struct Pokemon *mon, bool32 isDynamaxing)
     CopyMonAbilityAndTypesToBattleMon(battler, mon);
 }
 
-static void RecalcBattlerStatsMixMega(u32 battler, struct Pokemon *mon)
+void RecalcBattlerStatsMixMega(u32 battler, struct Pokemon *mon)
 {
 	u8 megaStone;
 	u8 mixMegaType;
 	
-	if (gBattleStruct->mega.isWishMegaEvo == TRUE)
-		megaStone = STONE_DRAGON_ASCENT;
-	else
+	if (GetItemHoldEffect(gBattleMons[battler].item) == HOLD_EFFECT_MEGA_STONE)
 		megaStone = ItemIdToMegaStoneId(gBattleMons[battler].item);
+	else
+		megaStone = STONE_DRAGON_ASCENT;
 	
 	mixMegaType = mixMegaStones[megaStone].type;
 	
@@ -10982,16 +10988,16 @@ static void RecalcBattlerStatsMixMega(u32 battler, struct Pokemon *mon)
 	
     gBattleMons[battler].ability = mixMegaStones[megaStone].ability;
 	
-    gBattleMons[battler].type1 = gBaseStats[gBattleMons[battler].species].type1;
+    gBattleMons[battler].types[0] = gSpeciesInfo[gBattleMons[battler].species].types[0];
 	
 	if (mixMegaType == TYPE_NONE) {
-		gBattleMons[battler].type2 = gBaseStats[gBattleMons[battler].species].type2;
+		gBattleMons[battler].types[1] = gSpeciesInfo[gBattleMons[battler].species].types[1];
 	}
 	else if (mixMegaType == TYPE_NONE - 1) {
-		gBattleMons[battler].type2 = gBaseStats[gBattleMons[battler].species].type1;
+		gBattleMons[battler].types[1] = gSpeciesInfo[gBattleMons[battler].species].types[0];
 	}
 	else {
-		gBattleMons[battler].type2 = mixMegaType;
+		gBattleMons[battler].types[1] = mixMegaType;
 	}
 }
 

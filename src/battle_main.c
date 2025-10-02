@@ -3389,6 +3389,12 @@ const u8* FaintClearSetData(u32 battler)
 
     Ai_UpdateFaintData(battler);
     TryBattleFormChange(battler, FORM_CHANGE_FAINT);
+	
+	if (GetMonData(GetBattlerMon(battler), MON_DATA_MIXMEGA) == TRUE)
+	{
+		SetMonMixMega(GetBattlerMon(battler), FALSE);
+		RecalcBattlerStats(battler, GetBattlerMon(battler), FALSE);
+	}
 
     // If the fainted mon was involved in a Sky Drop
     if (gBattleStruct->skyDropTargets[battler] != SKY_DROP_NO_TARGET)
@@ -5608,6 +5614,12 @@ static void HandleEndTurn_FinishBattle(void)
 
             if (!changedForm)
                 changedForm = TryFormChange(i, B_SIDE_PLAYER, FORM_CHANGE_END_BATTLE);
+			
+			if (GetMonData(&gPlayerParty[i], MON_DATA_MIXMEGA) == TRUE)
+			{
+				SetMonMixMega(&gPlayerParty[i], FALSE);
+				CalculateMonStats(&gPlayerParty[i]);
+			}
 
             // Clear original species field
             gBattleStruct->partyState[B_SIDE_PLAYER][i].changedSpecies = SPECIES_NONE;

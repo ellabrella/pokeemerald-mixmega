@@ -888,5 +888,6 @@ struct Pokemon *GetSavedPlayerPartyMon(u32 index);
 u8 *GetSavedPlayerPartyCount(void);
 void SavePlayerPartyMon(u32 index, struct Pokemon *mon);
 u32 IsSpeciesOfType(u32 species, u32 type);
+void SetMonMixMega(struct Pokemon *mon, bool8 arg);
 
 #endif // GUARD_POKEMON_H
