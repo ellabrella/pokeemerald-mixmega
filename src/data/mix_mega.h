@@ -2,14 +2,17 @@
 // This table defines the stats associated with each Mega Stone when used for Mix and Mega.
 // The format is as follows: {ATK, DEF, SP.ATK, SP.DEF, SPEED, Secondary typing, Ability
 // If TYPE_NONE is chosen as the secondary typing, the stone won't affect secondary typing.
-// If TYPE_NONE - 1 is chosen as the secondary typing, the stone will remove the user's secondary type.
+// If NUMBER_OF_MON_TYPES is chosen as the secondary typing, the stone will remove the user's secondary type.
+// (NUMBER_OF_MON_TYPES is always 1 above the index of the last type.  This makes it a useful placeholder as it will never be confused for an existing type.)
+
 // You can add new mega stones to this list.
 // Just follow the same format, replacing the index (the STONE_WHATEVER part) with the new index you defined in include/mix_mega.h.
+
 const struct MixMegaStats mixMegaStones[] = {
 	[STONE_ABOMASITE] = {40, 30, 40, 20, -30, TYPE_NONE, ABILITY_SNOW_WARNING},
 	[STONE_ABSOLITE] = {20, 0, 40, 0, 40, TYPE_NONE, ABILITY_MAGIC_BOUNCE},
 	[STONE_AERODACTYLITE] = {30, 20, 10, 20, 20, TYPE_NONE, ABILITY_TOUGH_CLAWS},
-	[STONE_AGGRONITE] = {30, 50, 0, 20, 0, TYPE_NONE - 1, ABILITY_FILTER},
+	[STONE_AGGRONITE] = {30, 50, 0, 20, 0, NUMBER_OF_MON_TYPES, ABILITY_FILTER},
 	[STONE_ALAKAZITE] = {0, 20, 40, 10, 30, TYPE_NONE, ABILITY_TRACE},
 	[STONE_ALTARIANITE] = {40, 20, 40, 0, 0, TYPE_FAIRY, ABILITY_PIXILATE},
 	[STONE_AMPHAROSITE] = {20, 20, 50, 20, -10, TYPE_DRAGON, ABILITY_MOLD_BREAKER},

@@ -889,8 +889,19 @@ void HandleInputChooseMove(u32 battler)
     }
     else if (JOY_NEW(START_BUTTON))
     {
-        if (gBattleStruct->gimmick.usableGimmick[battler] != GIMMICK_NONE
+        /*if (gBattleStruct->gimmick.usableGimmick[battler] != GIMMICK_NONE
             && !HasTrainerUsedGimmick(battler, gBattleStruct->gimmick.usableGimmick[battler])
+            && !(gBattleStruct->gimmick.usableGimmick[battler] == GIMMICK_Z_MOVE
+                 && GetUsableZMove(battler, moveInfo->moves[gMoveSelectionCursor[battler]]) == MOVE_NONE))
+        {
+            gBattleStruct->gimmick.playerSelect ^= 1;
+            ReloadMoveNames(battler);
+            ChangeGimmickTriggerSprite(gBattleStruct->gimmick.triggerSpriteId, gBattleStruct->gimmick.playerSelect);
+            PlaySE(SE_SELECT);
+        }*/
+		// Adjusted this condition to allow for multiple mega evolutions (standard in Mix and Mega).
+		// I've left the original above in case I broke something!!
+		if (gBattleStruct->gimmick.usableGimmick[battler] != GIMMICK_NONE
             && !(gBattleStruct->gimmick.usableGimmick[battler] == GIMMICK_Z_MOVE
                  && GetUsableZMove(battler, moveInfo->moves[gMoveSelectionCursor[battler]]) == MOVE_NONE))
         {

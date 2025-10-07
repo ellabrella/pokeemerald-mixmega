@@ -138,10 +138,18 @@ void CreateGimmickTriggerSprite(u32 battler)
     const struct GimmickInfo * gimmick = &gGimmicksInfo[gBattleStruct->gimmick.usableGimmick[battler]];
 
     // Exit if there shouldn't be a sprite produced.
-    if (!IsOnPlayerSide(battler)
+    /*if (!IsOnPlayerSide(battler)
      || gBattleStruct->gimmick.usableGimmick[battler] == GIMMICK_NONE
      || gimmick->triggerSheet == NULL
      || HasTrainerUsedGimmick(battler, gBattleStruct->gimmick.usableGimmick[battler]))
+    {
+        return;
+    }*/
+	// Adjusted this condition to allow for multiple mega evolutions (standard in Mix and Mega).
+	// I've left the original above in case I broke something!!
+	if (!IsOnPlayerSide(battler)
+     || gBattleStruct->gimmick.usableGimmick[battler] == GIMMICK_NONE
+     || gimmick->triggerSheet == NULL)
     {
         return;
     }

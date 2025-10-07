@@ -5,7 +5,7 @@
 
 // This is a list of all mega evolutions usable in Mix and Mega.
 // If you add a new mega stone, make sure you add it to this list, placing it before the final element.
-// (i.e. add it between STONE_RED_ORB and STONES_COUNT)
+// (i.e. add it between STONE_DRAGON_ASCENT and STONES_COUNT)
 // You will also need to edit src/mix_mega.c and src/data/mix_mega.h.
 enum
 {

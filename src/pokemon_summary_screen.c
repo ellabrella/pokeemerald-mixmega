@@ -51,6 +51,7 @@
 #include "constants/region_map_sections.h"
 #include "constants/rgb.h"
 #include "constants/songs.h"
+#include "mix_mega.h"
 
 // Screen titles (upper left)
 #define PSS_LABEL_WINDOW_POKEMON_INFO_TITLE 0
@@ -166,6 +167,7 @@ static EWRAM_DATA struct PokemonSummaryScreenData
         u32 OTID; // 0x48
         u8 teraType;
         u8 mintNature;
+		bool8 mixMega;
     } summary;
     u16 bgTilemapBuffers[PSS_PAGE_COUNT][2][0x400];
     u8 mode;
@@ -1536,6 +1538,7 @@ static bool8 ExtractMonDataToSummaryStruct(struct Pokemon *mon)
         sum->ribbonCount = GetMonData(mon, MON_DATA_RIBBON_COUNT);
         sum->teraType = GetMonData(mon, MON_DATA_TERA_TYPE);
         sum->isShiny = GetMonData(mon, MON_DATA_IS_SHINY);
+		sum->mixMega = GetMonData(mon, MON_DATA_MIXMEGA);
         sMonSummaryScreen->relearnableMovesNum = P_SUMMARY_SCREEN_MOVE_RELEARNER ? GetNumberOfRelearnableMoves(mon) : 0;
         return TRUE;
     }
@@ -3466,13 +3469,37 @@ static void PrintMonOTID(void)
 
 static void PrintMonAbilityName(void)
 {
-    u16 ability = GetAbilityBySpecies(sMonSummaryScreen->summary.species, sMonSummaryScreen->summary.abilityNum);
+    u16 ability;
+	u8 megaStone;
+	
+	if (GetItemHoldEffect(sMonSummaryScreen->summary.item) == HOLD_EFFECT_MEGA_STONE)
+		megaStone = ItemIdToMegaStoneId(sMonSummaryScreen->summary.item);
+	else
+		megaStone = STONE_DRAGON_ASCENT;
+	
+	if (sMonSummaryScreen->summary.mixMega)
+		ability = mixMegaStones[megaStone].ability;
+	else
+		ability	= GetAbilityBySpecies(sMonSummaryScreen->summary.species, sMonSummaryScreen->summary.abilityNum);
+
     PrintTextOnWindow(AddWindowFromTemplateList(sPageInfoTemplate, PSS_DATA_WINDOW_INFO_ABILITY), gAbilitiesInfo[ability].name, 0, 1, 0, 1);
 }
 
 static void PrintMonAbilityDescription(void)
 {
-    u16 ability = GetAbilityBySpecies(sMonSummaryScreen->summary.species, sMonSummaryScreen->summary.abilityNum);
+    u16 ability;
+	u8 megaStone;
+	
+	if (GetItemHoldEffect(sMonSummaryScreen->summary.item) == HOLD_EFFECT_MEGA_STONE)
+		megaStone = ItemIdToMegaStoneId(sMonSummaryScreen->summary.item);
+	else
+		megaStone = STONE_DRAGON_ASCENT;
+	
+	if (sMonSummaryScreen->summary.mixMega)
+		ability = mixMegaStones[megaStone].ability;
+	else
+		ability	= GetAbilityBySpecies(sMonSummaryScreen->summary.species, sMonSummaryScreen->summary.abilityNum);
+	
     PrintTextOnWindow(AddWindowFromTemplateList(sPageInfoTemplate, PSS_DATA_WINDOW_INFO_ABILITY), gAbilitiesInfo[ability].description, 0, 17, 0, 0);
 }
 
@@ -4269,6 +4296,15 @@ void SetTypeSpritePosAndPal(u8 typeId, u8 x, u8 y, u8 spriteArrayId)
 static void SetMonTypeIcons(void)
 {
     struct PokeSummary *summary = &sMonSummaryScreen->summary;
+	u8 megaStone, mixMegaType;
+	
+	if (GetItemHoldEffect(summary->item) == HOLD_EFFECT_MEGA_STONE)
+		megaStone = ItemIdToMegaStoneId(summary->item);
+	else
+		megaStone = STONE_DRAGON_ASCENT;
+	
+	mixMegaType = mixMegaStones[megaStone].type;
+	
     if (summary->isEgg)
     {
         SetTypeSpritePosAndPal(TYPE_MYSTERY, 120, 48, SPRITE_ARR_ID_TYPE);
@@ -4277,15 +4313,31 @@ static void SetMonTypeIcons(void)
     else
     {
         SetTypeSpritePosAndPal(GetSpeciesType(summary->species, 0), 120, 48, SPRITE_ARR_ID_TYPE);
-        if (GetSpeciesType(summary->species, 0) != GetSpeciesType(summary->species, 1))
-        {
-            SetTypeSpritePosAndPal(GetSpeciesType(summary->species, 1), 160, 48, SPRITE_ARR_ID_TYPE + 1);
-            SetSpriteInvisibility(SPRITE_ARR_ID_TYPE + 1, FALSE);
-        }
-        else
-        {
-            SetSpriteInvisibility(SPRITE_ARR_ID_TYPE + 1, TRUE);
-        }
+        
+		if (summary->mixMega && mixMegaType != TYPE_NONE)
+		{
+			if (mixMegaType == NUMBER_OF_MON_TYPES)
+			{
+				SetSpriteInvisibility(SPRITE_ARR_ID_TYPE + 1, TRUE);
+			}
+			else
+			{
+				SetTypeSpritePosAndPal(mixMegaType, 160, 48, SPRITE_ARR_ID_TYPE + 1);
+				SetSpriteInvisibility(SPRITE_ARR_ID_TYPE + 1, FALSE);
+			}
+		}
+		else {
+			if (GetSpeciesType(summary->species, 0) != GetSpeciesType(summary->species, 1))
+			{
+				SetTypeSpritePosAndPal(GetSpeciesType(summary->species, 1), 160, 48, SPRITE_ARR_ID_TYPE + 1);
+				SetSpriteInvisibility(SPRITE_ARR_ID_TYPE + 1, FALSE);
+			}
+			else
+			{
+				SetSpriteInvisibility(SPRITE_ARR_ID_TYPE + 1, TRUE);
+			}
+		}
+		
         if (P_SHOW_TERA_TYPE >= GEN_9)
         {
             SetTypeSpritePosAndPal(summary->teraType, 200, 48, SPRITE_ARR_ID_TYPE + 2);

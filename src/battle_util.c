@@ -10993,7 +10993,7 @@ void RecalcBattlerStatsMixMega(u32 battler, struct Pokemon *mon)
 	if (mixMegaType == TYPE_NONE) {
 		gBattleMons[battler].types[1] = gSpeciesInfo[gBattleMons[battler].species].types[1];
 	}
-	else if (mixMegaType == TYPE_NONE - 1) {
+	else if (mixMegaType == NUMBER_OF_MON_TYPES) {
 		gBattleMons[battler].types[1] = gSpeciesInfo[gBattleMons[battler].species].types[0];
 	}
 	else {
